@@ -14,4 +14,4 @@ export const LEAGUES = [
     { id: "4351", name: "Championship" },
   ];
   
-  export const DEFAULT_SEASON = "2024-2025";
+  export const DEFAULT_SEASON = "2025-2026";
