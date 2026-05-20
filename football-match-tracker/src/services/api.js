@@ -1,85 +1,46 @@
-const BASE_URL = "https://www.thesportsdb.com/api/v1/json/3";
+const BASE = "https://www.thesportsdb.com/api/v1/json/3";
 
-// Sök efter ett lag
-export async function searchTeams(teamName) {
-  const response = await fetch(`${BASE_URL}/searchteams.php?t=${teamName}`);
-  const data = await response.json();
-
-  return data.teams || [];
+async function fetchJson(path) {
+  const response = await fetch(`${BASE}${path}`);
+  if (!response.ok) {
+    throw new Error(`API-fel: ${response.status}`);
+  }
+  return response.json();
 }
 
-// Hämta alla lag i en liga
-export async function getTeamsByLeague(leagueName) {
-  const response = await fetch(
-    `${BASE_URL}/search_all_teams.php?l=${leagueName}`
-  );
-  const data = await response.json();
-
-  return data.teams || [];
-}
-
-// Hämta ligatabell
+// Hämta ligatabell för en specifik säsong
 export async function getLeagueTable(leagueId, season) {
-  const response = await fetch(
-    `${BASE_URL}/lookuptable.php?l=${leagueId}&s=${season}`
-  );
-  const data = await response.json();
-
-  return data.table || [];
+  const data = await fetchJson(`/lookuptable.php?l=${leagueId}&s=${season}`);
+  return data.table ?? [];
 }
 
-// Hämta kommande matcher i en liga
-export async function getNextMatchesByLeague(leagueId) {
-  const response = await fetch(
-    `${BASE_URL}/eventsnextleague.php?id=${leagueId}`
-  );
-  const data = await response.json();
-
-  return data.events || [];
+// Sök efter lag på namn
+export async function searchTeams(query) {
+  if (!query.trim()) return [];
+  const data = await fetchJson(`/searchteams.php?t=${encodeURIComponent(query)}`);
+  return data.teams ?? [];
 }
 
-// Hämta tidigare matcher i en liga
-export async function getPastMatchesByLeague(leagueId) {
-  const response = await fetch(
-    `${BASE_URL}/eventspastleague.php?id=${leagueId}`
-  );
-  const data = await response.json();
-
-  return data.events || [];
+// Kommande matcher i en liga (max 15)
+export async function getNextEvents(leagueId) {
+  const data = await fetchJson(`/eventsnextleague.php?id=${leagueId}`);
+  return data.events ?? [];
 }
 
-// Hämta detaljer om ett lag via id
-export async function getTeamDetails(teamId) {
-  const response = await fetch(`${BASE_URL}/lookupteam.php?id=${teamId}`);
-  const data = await response.json();
-
-  return data.teams ? data.teams[0] : null;
+// Senaste matcher i en liga (max 15)
+export async function getPastEvents(leagueId) {
+  const data = await fetchJson(`/eventspastleague.php?id=${leagueId}`);
+  return data.events ?? [];
 }
 
-// Hämta kommande matcher för ett specifikt lag
-export async function getNextMatchesByTeam(teamId) {
-  const response = await fetch(`${BASE_URL}/eventsnext.php?id=${teamId}`);
-  const data = await response.json();
-
-  return data.events || [];
+// Hämta detaljer för ett specifikt lag
+export async function getTeam(teamId) {
+  const data = await fetchJson(`/lookupteam.php?id=${teamId}`);
+  return data.teams?.[0] ?? null;
 }
 
-// Hämta tidigare matcher för ett specifikt lag
-export async function getPastMatchesByTeam(teamId) {
-  const response = await fetch(`${BASE_URL}/eventslast.php?id=${teamId}`);
-  const data = await response.json();
-
-  return data.results || [];
-}
-
-// Sök efter liga
-export async function searchLeague(leagueName) {
-  const response = await fetch(`${BASE_URL}/search_all_leagues.php?s=Soccer`);
-  const data = await response.json();
-
-  const leagues = data.countries || [];
-
-  return leagues.filter((league) =>
-    league.strLeague.toLowerCase().includes(leagueName.toLowerCase())
-  );
+// Hämta detaljer för en specifik liga
+export async function getLeague(leagueId) {
+  const data = await fetchJson(`/lookupleague.php?id=${leagueId}`);
+  return data.leagues?.[0] ?? null;
 }
