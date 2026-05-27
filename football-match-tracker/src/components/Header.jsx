@@ -7,7 +7,8 @@ function Header() {
 
   return (
     <header className="header">
-      <div className="header-brand">⚽ FUT-Tracker</div>
+      <div className="header-brand">FUT-Tracker</div>
+
       <nav>
         <ul className="header-nav">
           <li>
@@ -15,11 +16,19 @@ function Header() {
               Hem
             </NavLink>
           </li>
+
+          <li>
+            <NavLink to="/worldcup" className={getLinkClass}>
+              World Cup 2026
+            </NavLink>
+          </li>
+
           <li>
             <NavLink to="/matches" className={getLinkClass}>
               Matcher
             </NavLink>
           </li>
+
           <li>
             <NavLink to="/favorites" className={getLinkClass}>
               Favoriter

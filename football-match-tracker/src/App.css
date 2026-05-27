@@ -146,8 +146,8 @@
 .standings th,
 .standings td {
   padding: 10px 8px;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
+  text-align: center;
+  border-bottom: none;
 }
 .standings th {
   font-weight: 500;
@@ -160,7 +160,12 @@
   background: var(--social-bg);
 }
 .standings .num {
-  text-align: right;
+  text-align: center;
+}
+
+.standings td:nth-child(2),
+.standings th:nth-child(2) {
+  text-align: left;
 }
 .standings .strong {
   font-weight: 600;
@@ -171,6 +176,7 @@
   align-items: center;
   gap: 10px;
   color: var(--text-h);
+  width: 100%;
 }
 .team-cell img {
   border-radius: 3px;
@@ -365,6 +371,27 @@
   border-radius: 4px;
 }
 
+.worldcup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 50px;
+}
+
+.worldcup-group {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .worldcup-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.team-with-flag {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
 /* Utility */
 .muted {
   color: var(--text);
