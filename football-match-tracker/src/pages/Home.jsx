@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
-import { getLeagueTable, getTeamsByLeague } from "../services/api";
+import {
+  getLeagueTable,
+  getTeamsByLeague,
+  searchPlayers,
+} from "../services/api";
 import { useFavorites } from "../context/FavoritesContext";
 import { LEAGUES, DEFAULT_SEASON } from "../utils/leagues";
 import LeagueList from "../components/LeagueList";
 import TeamCard from "../components/TeamCard";
+import PlayerCard from "../components/PlayerCard";
 
 function Home() {
   const [selectedLeague, setSelectedLeague] = useState(LEAGUES[0]);
@@ -12,7 +17,9 @@ function Home() {
 
   const [search, setSearch] = useState("");
   const [teams, setTeams] = useState([]);
+  const [players, setPlayers] = useState([]);
   const [leagueTeams, setLeagueTeams] = useState([]);
+  const [searching, setSearching] = useState(false);
 
   const { isLeagueFavorite, isTeamFavorite, toggleLeague, toggleTeam } =
     useFavorites();
@@ -30,12 +37,12 @@ function Home() {
         );
 
         const teamsData = await getTeamsByLeague(selectedLeague.apiName);
-        console.log("Vald liga:", selectedLeague);
-        console.log("Lag i ligan:", teamsData);
+
         if (!cancelled) {
           setTable(tableData);
           setLeagueTeams(teamsData);
           setTeams([]);
+          setPlayers([]);
           setSearch("");
         }
       } catch (error) {
@@ -45,6 +52,7 @@ function Home() {
           setTable([]);
           setLeagueTeams([]);
           setTeams([]);
+          setPlayers([]);
         }
       } finally {
         if (!cancelled) {
@@ -60,20 +68,38 @@ function Home() {
     };
   }, [selectedLeague]);
 
-  function handleSearch(event) {
+  async function handleSearch(event) {
     event.preventDefault();
-  
+
     const searchValue = search.trim().toLowerCase();
-  
+
     if (!searchValue) {
       setTeams([]);
+      setPlayers([]);
       return;
     }
-    const filteredTeams = table.filter((team) =>
-      team.strTeam?.toLowerCase().includes(searchValue)
-    );
 
-    setTeams(filteredTeams);
+    setSearching(true);
+
+    try {
+      const filteredTeams = table.filter((team) =>
+        team.strTeam?.toLowerCase().includes(searchValue)
+      );
+
+      const playerResults = await searchPlayers(search);
+
+      const footballPlayers = playerResults.filter(
+        (player) => player.strSport === "Soccer"
+      );
+
+      setTeams(filteredTeams);
+      setPlayers(footballPlayers);
+    } catch (error) {
+      console.error("Kunde inte söka:", error);
+      setPlayers([]);
+    } finally {
+      setSearching(false);
+    }
   }
 
   const leagueIsFav = isLeagueFavorite(selectedLeague.id);
@@ -170,30 +196,49 @@ function Home() {
       </section>
 
       <section className="section">
-        <h2>Sök lag i {selectedLeague.name}</h2>
+        <h2>Sök lag eller spelare</h2>
 
         <form className="search-form" onSubmit={handleSearch}>
           <input
             type="text"
-            placeholder="Sök efter lag..."
+            placeholder="Sök efter lag eller spelare..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
 
-          <button type="submit">Sök</button>
+          <button type="submit" disabled={searching}>
+            {searching ? "Söker…" : "Sök"}
+          </button>
         </form>
 
-        {teams.length > 0 ? (
-          <div className="team-grid">
-            {teams.map((team) => (
-              <TeamCard key={team.idTeam || team.strTeam} team={team} />
-            ))}
-          </div>
-        ) : (
-          search.trim() && (
-            <p className="muted">Inga lag hittades i {selectedLeague.name}.</p>
-          )
+        {teams.length > 0 && (
+          <>
+            <h3>Lag</h3>
+            <div className="team-grid">
+              {teams.map((team) => (
+                <TeamCard key={team.idTeam || team.strTeam} team={team} />
+              ))}
+            </div>
+          </>
         )}
+
+        {players.length > 0 && (
+          <>
+            <h3>Spelare</h3>
+            <div className="team-grid">
+              {players.map((player) => (
+                <PlayerCard key={player.idPlayer} player={player} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {!searching &&
+          search.trim() &&
+          teams.length === 0 &&
+          players.length === 0 && (
+            <p className="muted">Inga lag eller spelare hittades.</p>
+          )}
       </section>
     </main>
   );

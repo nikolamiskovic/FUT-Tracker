@@ -20,7 +20,7 @@ async function fetchJson(path) {
   return response.json();
 }
 
-// Cachar ALLA topplag i 10 minuter
+
 async function getAllTopLeagueTeams() {
   return cachedFetch(
     "all-top-league-teams",
@@ -122,5 +122,16 @@ export async function getLeague(leagueId) {
     );
 
     return data.leagues?.[0] ?? null;
+  });
+}
+export async function searchPlayers(playerName) {
+  if (!playerName.trim()) return [];
+
+  return cachedFetch(`players-${playerName.toLowerCase()}`, async () => {
+    const data = await fetchJson(
+      `/searchplayers.php?p=${encodeURIComponent(playerName)}`
+    );
+
+    return data.player ?? [];
   });
 }

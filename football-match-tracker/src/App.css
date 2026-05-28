@@ -392,6 +392,12 @@
   align-items: center;
   gap: 0.6rem;
 }
+
+.player-card img {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+}
 /* Utility */
 .muted {
   color: var(--text);
