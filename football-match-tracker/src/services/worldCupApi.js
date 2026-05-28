@@ -1,3 +1,5 @@
+import { cachedFetch } from "../utils/cache";
+
 const BASE = "/api/football-data";
 
 async function fetchWorldCup(path) {
@@ -11,11 +13,23 @@ async function fetchWorldCup(path) {
 }
 
 export async function getWorldCupMatches() {
-  const data = await fetchWorldCup("/competitions/WC/matches");
-  return data.matches ?? [];
+  return cachedFetch(
+    "worldcup-matches",
+    async () => {
+      const data = await fetchWorldCup("/competitions/WC/matches");
+      return data.matches ?? [];
+    },
+    10 * 60 * 1000
+  );
 }
 
 export async function getWorldCupStandings() {
-  const data = await fetchWorldCup("/competitions/WC/standings");
-  return data.standings ?? [];
+  return cachedFetch(
+    "worldcup-standings",
+    async () => {
+      const data = await fetchWorldCup("/competitions/WC/standings");
+      return data.standings ?? [];
+    },
+    10 * 60 * 1000
+  );
 }
