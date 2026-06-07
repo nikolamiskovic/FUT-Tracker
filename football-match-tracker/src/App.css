@@ -1,4 +1,3 @@
-/* Override Vite-templatens centrerade hero-layout från index.css */
 #root {
   width: auto;
   max-width: 1200px;
@@ -95,7 +94,7 @@
   align-items: center;
 }
 
-/* Dropdown */
+/* Dropdown meny*/
 .league-select {
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -136,7 +135,7 @@
   background: var(--accent-bg);
 }
 
-/* Standings table */
+/* Standings tabell */
 .standings {
   width: 100%;
   border-collapse: collapse;
