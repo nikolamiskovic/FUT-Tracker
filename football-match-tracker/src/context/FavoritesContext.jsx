@@ -18,6 +18,7 @@ export function FavoritesProvider({ children }) {
   const [favoriteLeagues, setFavoriteLeagues] = useState(() =>
     readFromStorage(LEAGUES_KEY)
   );
+
   const [favoriteTeams, setFavoriteTeams] = useState(() =>
     readFromStorage(TEAMS_KEY)
   );
@@ -38,11 +39,11 @@ export function FavoritesProvider({ children }) {
     );
   }
 
-  function toggleTeam(teamId) {
+  function toggleTeam(team) {
     setFavoriteTeams((prev) =>
-      prev.includes(teamId)
-        ? prev.filter((id) => id !== teamId)
-        : [...prev, teamId]
+      prev.some((savedTeam) => savedTeam.idTeam === team.idTeam)
+        ? prev.filter((savedTeam) => savedTeam.idTeam !== team.idTeam)
+        : [...prev, team]
     );
   }
 
@@ -50,7 +51,8 @@ export function FavoritesProvider({ children }) {
     favoriteLeagues,
     favoriteTeams,
     isLeagueFavorite: (id) => favoriteLeagues.includes(id),
-    isTeamFavorite: (id) => favoriteTeams.includes(id),
+    isTeamFavorite: (id) =>
+      favoriteTeams.some((team) => team.idTeam === id),
     toggleLeague,
     toggleTeam,
   };
@@ -64,8 +66,10 @@ export function FavoritesProvider({ children }) {
 
 export function useFavorites() {
   const context = useContext(FavoritesContext);
+
   if (!context) {
     throw new Error("useFavorites måste användas inuti FavoritesProvider");
   }
+
   return context;
 }

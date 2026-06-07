@@ -2,10 +2,11 @@ import { useFavorites } from "../context/FavoritesContext";
 
 function TeamCard({ team }) {
   const { isTeamFavorite, toggleTeam } = useFavorites();
+
   const isFavorite = isTeamFavorite(team.idTeam);
 
   function handleFavoriteClick() {
-    toggleTeam(team.idTeam);
+    toggleTeam(team);
   }
 
   return (
@@ -13,13 +14,16 @@ function TeamCard({ team }) {
       <button
         className={`fav-btn ${isFavorite ? "fav-btn--active" : ""}`}
         onClick={handleFavoriteClick}
-        aria-label={isFavorite ? "Ta bort favorit" : "Lägg till favorit"}
+        aria-label={
+          isFavorite ? "Ta bort favorit" : "Lägg till favorit"
+        }
       >
         {isFavorite ? "★" : "☆"}
       </button>
-      {team.strTeamBadge ? (
+
+      {team.strTeamBadge || team.strBadge ? (
         <img
-          src={team.strTeamBadge}
+          src={team.strTeamBadge || team.strBadge}
           alt={team.strTeam}
           width="100"
           height="100"
@@ -27,8 +31,11 @@ function TeamCard({ team }) {
       ) : (
         <div className="team-card-placeholder" />
       )}
+
       <h3>{team.strTeam}</h3>
+
       <p>{team.strLeague}</p>
+
       <p>{team.strCountry}</p>
     </div>
   );

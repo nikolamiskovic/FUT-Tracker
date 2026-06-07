@@ -1,34 +1,58 @@
 import { useEffect, useState } from "react";
-import { getLeagueTable, searchTeams } from "../services/api";
+import {
+  getLeagueTable,
+  getTeamsByLeague,
+  searchPlayers,
+} from "../services/api";
 import { useFavorites } from "../context/FavoritesContext";
 import { LEAGUES, DEFAULT_SEASON } from "../utils/leagues";
 import LeagueList from "../components/LeagueList";
 import TeamCard from "../components/TeamCard";
+import PlayerCard from "../components/PlayerCard";
 
 function Home() {
   const [selectedLeague, setSelectedLeague] = useState(LEAGUES[0]);
   const [table, setTable] = useState([]);
   const [loadingTable, setLoadingTable] = useState(false);
+
   const [search, setSearch] = useState("");
   const [teams, setTeams] = useState([]);
+  const [players, setPlayers] = useState([]);
+  const [leagueTeams, setLeagueTeams] = useState([]);
   const [searching, setSearching] = useState(false);
 
-  const {
-    isLeagueFavorite,
-    isTeamFavorite,
-    toggleLeague,
-    toggleTeam,
-  } = useFavorites();
+  const { isLeagueFavorite, isTeamFavorite, toggleLeague, toggleTeam } =
+    useFavorites();
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadTable() {
+    async function loadLeagueData() {
       setLoadingTable(true);
+
       try {
-        const data = await getLeagueTable(selectedLeague.id, DEFAULT_SEASON);
+        const tableData = await getLeagueTable(
+          selectedLeague.id,
+          DEFAULT_SEASON
+        );
+
+        const teamsData = await getTeamsByLeague(selectedLeague.apiName);
+
         if (!cancelled) {
-          setTable(data);
+          setTable(tableData);
+          setLeagueTeams(teamsData);
+          setTeams([]);
+          setPlayers([]);
+          setSearch("");
+        }
+      } catch (error) {
+        console.error("Kunde inte hämta ligadata:", error);
+
+        if (!cancelled) {
+          setTable([]);
+          setLeagueTeams([]);
+          setTeams([]);
+          setPlayers([]);
         }
       } finally {
         if (!cancelled) {
@@ -37,7 +61,8 @@ function Home() {
       }
     }
 
-    loadTable();
+    loadLeagueData();
+
     return () => {
       cancelled = true;
     };
@@ -45,11 +70,33 @@ function Home() {
 
   async function handleSearch(event) {
     event.preventDefault();
-    if (!search.trim()) return;
+
+    const searchValue = search.trim().toLowerCase();
+
+    if (!searchValue) {
+      setTeams([]);
+      setPlayers([]);
+      return;
+    }
+
     setSearching(true);
+
     try {
-      const result = await searchTeams(search);
-      setTeams(result);
+      const filteredTeams = table.filter((team) =>
+        team.strTeam?.toLowerCase().includes(searchValue)
+      );
+
+      const playerResults = await searchPlayers(search);
+
+      const footballPlayers = playerResults.filter(
+        (player) => player.strSport === "Soccer"
+      );
+
+      setTeams(filteredTeams);
+      setPlayers(footballPlayers);
+    } catch (error) {
+      console.error("Kunde inte söka:", error);
+      setPlayers([]);
     } finally {
       setSearching(false);
     }
@@ -64,22 +111,27 @@ function Home() {
       <section className="section">
         <div className="section-head">
           <h2>{selectedLeague.name}</h2>
+
           <div className="section-controls">
             <LeagueList
               selectedLeague={selectedLeague}
               onSelectLeague={setSelectedLeague}
             />
+
             <button
+              type="button"
               className={`fav-btn ${leagueIsFav ? "fav-btn--active" : ""}`}
               onClick={() => toggleLeague(selectedLeague.id)}
-              aria-label={leagueIsFav ? "Ta bort favoritliga" : "Favorisera liga"}
+              aria-label={
+                leagueIsFav ? "Ta bort favoritliga" : "Favorisera liga"
+              }
             >
               {leagueIsFav ? "★" : "☆"}
             </button>
           </div>
         </div>
 
-        {loadingTable && <p className="muted">Hämtar tabell…</p>}
+        {loadingTable && <p className="muted">Hämtar ligadata…</p>}
 
         {!loadingTable && table.length === 0 && (
           <p className="muted">Ingen tabelldata tillgänglig.</p>
@@ -99,32 +151,38 @@ function Home() {
                 <th aria-label="Favorit"></th>
               </tr>
             </thead>
+
             <tbody>
               {table.map((team) => (
-                <tr key={team.idTeam}>
+                <tr key={team.idTeam || team.strTeam}>
                   <td className="num">{team.intRank}</td>
+
                   <td className="team-cell">
-                    {team.strBadge && (
+                    {(team.strBadge || team.strTeamBadge) && (
                       <img
-                        src={team.strBadge}
+                        src={team.strBadge || team.strTeamBadge}
                         alt=""
                         width="22"
                         height="22"
                       />
                     )}
+
                     <span>{team.strTeam}</span>
                   </td>
+
                   <td className="num">{team.intPlayed}</td>
                   <td className="num">{team.intWin}</td>
                   <td className="num">{team.intDraw}</td>
                   <td className="num">{team.intLoss}</td>
                   <td className="num strong">{team.intPoints}</td>
+
                   <td>
                     <button
+                      type="button"
                       className={`fav-btn ${
                         isTeamFavorite(team.idTeam) ? "fav-btn--active" : ""
                       }`}
-                      onClick={() => toggleTeam(team.idTeam)}
+                      onClick={() => toggleTeam(team)}
                       aria-label={`Favorisera ${team.strTeam}`}
                     >
                       {isTeamFavorite(team.idTeam) ? "★" : "☆"}
@@ -138,26 +196,49 @@ function Home() {
       </section>
 
       <section className="section">
-        <h2>Sök lag</h2>
+        <h2>Sök lag eller spelare</h2>
+
         <form className="search-form" onSubmit={handleSearch}>
           <input
             type="text"
-            placeholder="Sök efter lag..."
+            placeholder="Sök efter lag eller spelare..."
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
+
           <button type="submit" disabled={searching}>
             {searching ? "Söker…" : "Sök"}
           </button>
         </form>
 
         {teams.length > 0 && (
-          <div className="team-grid">
-            {teams.map((team) => (
-              <TeamCard key={team.idTeam} team={team} />
-            ))}
-          </div>
+          <>
+            <h3>Lag</h3>
+            <div className="team-grid">
+              {teams.map((team) => (
+                <TeamCard key={team.idTeam || team.strTeam} team={team} />
+              ))}
+            </div>
+          </>
         )}
+
+        {players.length > 0 && (
+          <>
+            <h3>Spelare</h3>
+            <div className="team-grid">
+              {players.map((player) => (
+                <PlayerCard key={player.idPlayer} player={player} />
+              ))}
+            </div>
+          </>
+        )}
+
+        {!searching &&
+          search.trim() &&
+          teams.length === 0 &&
+          players.length === 0 && (
+            <p className="muted">Inga lag eller spelare hittades.</p>
+          )}
       </section>
     </main>
   );

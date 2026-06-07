@@ -1,16 +1,86 @@
-# React + Vite
+# FUT-Tracker är en React-baserad webbapplikation för att följa fotbollsligor, lag, spelare och World Cup 2026.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Funktioner
 
-Currently, two official plugins are available:
+- Visa ligatabeller för:
+  - Premier League
+  - La Liga
+  - Bundesliga
+  - Serie A
+  - Ligue 1
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+ Sök efter lag
+- Sök efter spelare
+- Visa kommande och tidigare matcher
+- Spara favoritligor och favoritlag
+- World Cup 2026:
+  - Gruppspel
+  - Tabeller
+  - Matcher
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Tekniker
 
-## Expanding the ESLint configuration
+- React 18
+- Vite
+- React Router
+- Context API
+- LocalStorage
+- TheSportsDB API
+- Football Data API
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+## Installation
+
+### 1. Klona projektet
+
+```bash
+git clone <repository-url>
+```
+
+### 2. Gå in i projektmappen
+
+```bash
+cd football-match-tracker
+```
+
+### 3. Installera beroenden
+
+```bash
+npm install
+```
+
+### 4. Skapa en .env-fil i projektets rot
+
+Skapa filen:
+
+```bash
+.env
+```
+
+Lägg in följande:
+
+```env
+VITE_FOOTBALL_DATA_KEY=DIN_API_NYCKEL_HÄR (nyckeln medskickad i kommentarerna)
+Viktigt också att lägga env filen i football-match-tracker mappen
+```
+
+API-nyckeln hämtas från:
+
+https://www.football-data.org/
+
+---
+
+## Starta projektet
+
+```bash
+npm run dev
+```
+
+Öppna sedan:
+
+```text
+http://localhost:5173
+```
